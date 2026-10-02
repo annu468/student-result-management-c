@@ -67,6 +67,42 @@ gcc -std=c11 -Wall -Wextra -pedantic main.c -o student_result.exe
 student_result.exe
 ```
 
+## Example Run
+
+A simple example of the program flow:
+
+```text
+Student Result Management System
+Records are kept only for the current program run.
+
+1. Add student record
+2. View all results
+3. Search by roll number
+4. Show class summary
+5. Exit
+
+Choose an option: 1
+Roll number: 101
+Student name: Sample Student
+Enter marks (0-100):
+Subject 1: 78
+Subject 2: 82
+Subject 3: 75
+Subject 4: 80
+Subject 5: 85
+Student record added successfully.
+
+Choose an option: 3
+Enter roll number to search: 101
+
+Roll No : 101
+Name    : Sample Student
+Total      : 400/500
+Percentage : 80.00%
+Grade      : B
+Result     : PASS
+```
+
 ## Project Structure
 
 ```text
