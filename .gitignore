@@ -1,0 +1,18 @@
+# Compiled programs
+*.exe
+student_result
+*.out
+
+# Object files
+*.o
+*.obj
+
+# IDE / editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

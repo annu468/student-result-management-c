@@ -6,7 +6,7 @@
 
 /*
  * Student Result Management System in C
- * First C programming learning project by Anu Mahato
+ * First C programming learning project
  */
 
 #define MAX_STUDENTS 50
