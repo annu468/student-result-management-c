@@ -7,7 +7,7 @@ I built this as a small command-line project to practice the basics of C program
 
 ## Features
 
-- Add multiple student records
+- Add multiple student records (up to 50)
 - Store roll number, name, and five subject marks
 - Calculate total marks and percentage
 - Assign a grade
@@ -16,6 +16,7 @@ I built this as a small command-line project to practice the basics of C program
 - View all result cards
 - Show a simple class summary
 - Validate numeric input and prevent duplicate roll numbers
+- Save records to `students.dat` and load them automatically on the next run
 
 ## C Concepts Practiced
 
@@ -28,18 +29,21 @@ I built this as a small command-line project to practice the basics of C program
 - Structures (`struct`)
 - Pointers and passing structures to functions
 - Basic input validation
+- File handling with `fopen`, `fread`, `fwrite`, and `fclose`
 
 ## Project Note
 
 This is my first C programming project, created as part of my B.Sc. Computer Science learning journey.
 
-The project demonstrates my current practice with core C concepts such as variables, conditions, loops, arrays, strings, functions, pointers, and structures.
+The project demonstrates my current practice with core C concepts such as variables, conditions, loops, arrays, strings, functions, pointers, structures, input validation, and file handling.
 
 I am continuing to study, test, explain, and improve the program as my C programming skills develop.
 
-## Important Note
+## Data Storage
 
-This first version keeps records in memory only. Closing the program clears the data. File storage can be added later as a separate learning step.
+Student records are saved in a local file named `students.dat` in the program's current working directory. The program attempts to load this file on startup and saves records after a new student is added and when the program exits.
+
+**Important:** Keep `students.dat` in a safe place if the records matter. This is a beginner project, not a production database. The file stores C structure data in a binary format, so it is intended for use with the same program structure/compiler environment. This version supports up to 50 records and does not include editing or deleting records, automatic backups, or protection against disk failure.
 
 ## Grading Used in This Project
 
@@ -67,14 +71,17 @@ gcc -std=c11 -Wall -Wextra -pedantic main.c -o student_result.exe
 student_result.exe
 ```
 
+Run the program from the same folder each time so it can find `students.dat`.
+
 ## Example Run
 
 A simple example of the program flow:
 
 ```text
 Student Result Management System
-Records are kept only for the current program run.
+Loaded 0 student record(s) from students.dat.
 
+Student Result Manager
 1. Add student record
 2. View all results
 3. Search by roll number
@@ -90,18 +97,10 @@ Subject 2: 82
 Subject 3: 75
 Subject 4: 80
 Subject 5: 85
-Student record added successfully.
-
-Choose an option: 3
-Enter roll number to search: 101
-
-Roll No : 101
-Name    : Sample Student
-Total      : 400/500
-Percentage : 80.00%
-Grade      : B
-Result     : PASS
+Student record added and saved successfully.
 ```
+
+The next time the program starts, it will try to load that saved record from `students.dat`.
 
 ## Project Structure
 
