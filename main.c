@@ -12,6 +12,7 @@
 #define MAX_STUDENTS 50
 #define SUBJECT_COUNT 5
 #define PASS_MARK 35
+#define DATA_FILE "students.dat"
 
 const char *subjects[SUBJECT_COUNT] = {
     "Subject 1",
@@ -40,6 +41,8 @@ void show_all(const Student students[], int count);
 void search_student(const Student students[], int count);
 void show_summary(const Student students[], int count);
 void show_menu(void);
+int load_students(Student students[], int *count);
+int save_students(const Student students[], int count);
 
 int read_int(const char *prompt, int min, int max) {
     char line[100];
@@ -186,7 +189,11 @@ void add_student(Student students[], int *count) {
     }
 
     (*count)++;
-    printf("Student record added successfully.\n");
+    if (save_students(students, *count)) {
+        printf("Student record added and saved successfully.\n");
+    } else {
+        printf("Student record added in memory, but saving failed.\n");
+    }
 }
 
 void show_all(const Student students[], int count) {
@@ -256,13 +263,115 @@ void show_menu(void) {
     printf("========================================\n");
 }
 
+/*
+ * Read the data file into a temporary array first. If the file is malformed,
+ * keep the application running with an empty in-memory list rather than
+ * partially loading records.
+ */
+int load_students(Student students[], int *count) {
+    FILE *file = fopen(DATA_FILE, "rb");
+    Student loaded[MAX_STUDENTS];
+    size_t records;
+
+    *count = 0;
+    if (file == NULL) {
+        if (errno == ENOENT) {
+            return 1; /* First run: data file does not exist yet. */
+        }
+        perror("Could not open student data file");
+        return 0;
+    }
+
+    records = fread(loaded, sizeof(Student), MAX_STUDENTS, file);
+    if (ferror(file)) {
+        perror("Could not read student data file");
+        fclose(file);
+        return 0;
+    }
+
+    /* A file larger than the supported record count is rejected. */
+    if (records == MAX_STUDENTS && fgetc(file) != EOF) {
+        fprintf(stderr, "Data file has more than %d records; not loaded.\n",
+                MAX_STUDENTS);
+        fclose(file);
+        return 0;
+    }
+
+    /* Detect a trailing partial record instead of silently accepting it. */
+    if (records < MAX_STUDENTS && !feof(file)) {
+        int extra = fgetc(file);
+        if (extra != EOF) {
+            fprintf(stderr, "Data file is incomplete or corrupted; not loaded.\n");
+            fclose(file);
+            return 0;
+        }
+    }
+
+    if (fclose(file) != 0) {
+        perror("Could not close student data file");
+        return 0;
+    }
+
+    for (size_t i = 0; i < records; i++) {
+        if (loaded[i].roll_no < 1 || loaded[i].roll_no > 999999 ||
+            memchr(loaded[i].name, '\0', sizeof(loaded[i].name)) == NULL) {
+            fprintf(stderr, "Invalid student record in data file; not loaded.\n");
+            return 0;
+        }
+
+        for (int j = 0; j < SUBJECT_COUNT; j++) {
+            if (loaded[i].marks[j] < 0 || loaded[i].marks[j] > 100) {
+                fprintf(stderr, "Invalid marks in data file; not loaded.\n");
+                return 0;
+            }
+        }
+
+        for (size_t j = 0; j < i; j++) {
+            if (loaded[i].roll_no == loaded[j].roll_no) {
+                fprintf(stderr, "Duplicate roll number in data file; not loaded.\n");
+                return 0;
+            }
+        }
+    }
+
+    memcpy(students, loaded, records * sizeof(Student));
+    *count = (int)records;
+    return 1;
+}
+
+int save_students(const Student students[], int count) {
+    FILE *file = fopen(DATA_FILE, "wb");
+    if (file == NULL) {
+        perror("Could not save student data");
+        return 0;
+    }
+
+    if (fwrite(students, sizeof(Student), (size_t)count, file) != (size_t)count) {
+        perror("Could not write all student records");
+        fclose(file);
+        return 0;
+    }
+
+    if (fclose(file) != 0) {
+        perror("Could not finish saving student data");
+        return 0;
+    }
+
+    return 1;
+}
+
 int main(void) {
     Student students[MAX_STUDENTS];
     int count = 0;
     int choice;
 
     printf("Student Result Management System\n");
-    printf("Records are kept only for the current program run.\n");
+
+    if (load_students(students, &count)) {
+        printf("Loaded %d student record(s) from %s.\n", count, DATA_FILE);
+    } else {
+        printf("Could not load saved records. Starting with an empty list.\n");
+    }
 
     do {
         show_menu();
@@ -282,7 +391,11 @@ int main(void) {
                 show_summary(students, count);
                 break;
             case 5:
-                printf("Goodbye.\n");
+                if (save_students(students, count)) {
+                    printf("Records saved. Goodbye.\n");
+                } else {
+                    printf("Warning: records could not be saved.\n");
+                }
                 break;
         }
     } while (choice != 5);
